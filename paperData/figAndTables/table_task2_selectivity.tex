@@ -1,0 +1,23 @@
+\begin{table*}[t]
+    \centering
+    \caption{\textbf{Task 2 Selectivity and Peak Layer.} Values represent selectivity $\mathcal{S}$ ($\times 100$) at peak layer ($L$). Formatting and thresholds are identical to Table~\ref{tab:task1-results}.}
+    \label{tab:task2-results}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{} ll ccc ccc ccc @{} }
+        \toprule
+        & & \multicolumn{3}{c}{\textbf{Eval on Standard}} & \multicolumn{3}{c}{\textbf{Eval on Adversarial}} & \multicolumn{3}{c}{\textbf{Absolute Drop (\boldmath$\Delta$)}} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+        \textbf{Model} & \textbf{Train} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} \\
+        \midrule
+        \textbf{CodeLlama (7B)} & Java & \textbf{\textit{86}} (30) & \textit{42} (23) & 13 (25) & \textbf{\textit{74}} & 29 & 16 & 12 & 13 & -3 \\
+         & pyTag & \textit{35} (30) & \textbf{\textit{89}} (31) & 22 (31) & 26 & \textit{52} & 09 & 09 & 36 & 13 \\
+         & pyUnt & \textit{42} (22) & \textbf{\textit{63}} (27) & \textit{42} (25) & 29 & \textit{34} & 23 & 14 & 28 & 19 \\
+        \midrule
+        \textbf{SantaCoder (1.1B)} & Java & \textbf{\textit{88}} (19) & \textbf{\textit{79}} (16) & 18 (13) & \textit{53} & \textit{50} & -2 & 35 & 29 & 20 \\
+         & pyTag & \textbf{\textit{85}} (16) & \textbf{\textit{88}} (15) & 23 (15) & \textit{58} & \textbf{\textit{66}} & -2 & 27 & 22 & 25 \\
+         & pyUnt & \textbf{\textit{67}} (16) & \textit{61} (16) & \textit{37} (16) & \textit{37} & 27 & 19 & 30 & 33 & 18 \\
+        \bottomrule
+    \end{tabular}}
+\end{table*}

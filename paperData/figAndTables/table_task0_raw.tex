@@ -1,0 +1,23 @@
+\begin{table*}[t]
+    \centering
+    \caption{\textbf{Task 0 Raw Accuracy and Peak Layer.} Values represent \emph{raw accuracy} ($\times 100$) and the peak layer $(L)$. Accuracies $\ge 75$ are in \textbf{bold}.}
+    \label{tab:task0-resultsRaw}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{} ll ccc ccc ccc @{} }
+        \toprule
+        & & \multicolumn{3}{c}{\textbf{Eval on Standard}} & \multicolumn{3}{c}{\textbf{Eval on Adversarial}} & \multicolumn{3}{c}{\textbf{Absolute Drop (\boldmath$\Delta$)}} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+        \textbf{Model} & \textbf{Train} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} \\
+        \midrule
+        \textbf{CodeLlama (7B)} & Java & \textbf{90} (23) & 64 (20) & 52 (14) & \textbf{75} & 62 & 53 & 16 & 02 & -1 \\
+         & pyTag & 73 (18) & \textbf{91} (15) & 57 (15) & 56 & \textbf{78} & 51 & 16 & 13 & 06 \\
+         & pyUnt & 63 (16) & \textbf{84} (15) & 58 (15) & 59 & \textbf{75} & 54 & 04 & 08 & 04 \\
+        \midrule
+        \textbf{SantaCoder (1.1B)} & Java & \textbf{95} (13) & \textbf{89} (13) & 51 (13) & \textbf{86} & \textbf{79} & 50 & 09 & 10 & 01 \\
+         & pyTag & \textbf{95} (13) & \textbf{90} (13) & 52 (12) & \textbf{86} & \textbf{82} & 49 & 09 & 09 & 02 \\
+         & pyUnt & \textbf{83} (13) & \textbf{77} (13) & 52 (13) & \textbf{78} & \textbf{76} & 51 & 05 & 00 & 02 \\
+        \bottomrule
+    \end{tabular}}
+\end{table*}

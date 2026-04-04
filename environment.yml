@@ -1,0 +1,9 @@
+name: TypeProbe
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9.21
+  - pip
+  - pip:
+    - -r requirements.lock

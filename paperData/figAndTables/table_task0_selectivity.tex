@@ -1,0 +1,23 @@
+\begin{table*}[t]
+    \centering
+    \caption{\textbf{Task 0 Selectivity and Peak Layer.} Values represent peak selectivity $\mathcal{S}$ ($\times 100$) and the corresponding layer ($L$). Values $\mathcal{S} \ge 25$ are \textbf{bolded} (significant encoding, $\ge 75\%$ accuracy), and $\mathcal{S} \ge 20$ are \textit{italicized} (non-negligible feature encoding). Values are rounded to the nearest integer.}
+    \label{tab:task0-results}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{} ll ccc ccc ccc @{} }
+        \toprule
+        & & \multicolumn{3}{c}{\textbf{Eval on Standard}} & \multicolumn{3}{c}{\textbf{Eval on Adversarial}} & \multicolumn{3}{c}{\textbf{Absolute Drop (\boldmath$\Delta$)}} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+        \textbf{Model} & \textbf{Train} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} \\
+        \midrule
+        \textbf{CodeLlama (7B)} & Java & \textbf{\textit{40}} (23) & 18 (20) & 02 (14) & \textbf{\textit{25}} & 12 & 03 & 16 & 06 & -1 \\
+         & pyTag & \textit{22} (18) & \textbf{\textit{42}} (16) & 07 (15) & 06 & \textbf{\textit{31}} & 01 & 16 & 11 & 06 \\
+         & pyUnt & 14 (16) & \textbf{\textit{33}} (15) & 08 (16) & 09 & \textbf{\textit{25}} & 03 & 05 & 08 & 06 \\
+        \midrule
+        \textbf{SantaCoder (1.1B)} & Java & \textbf{\textit{50}} (14) & \textbf{\textit{39}} (13) & 01 (13) & \textbf{\textit{33}} & \textbf{\textit{29}} & 00 & 16 & 11 & 01 \\
+         & pyTag & \textbf{\textit{45}} (15) & \textbf{\textit{40}} (13) & 02 (12) & \textbf{\textit{34}} & \textbf{\textit{30}} & -1 & 11 & 10 & 02 \\
+         & pyUnt & \textbf{\textit{41}} (13) & \textbf{\textit{30}} (13) & 02 (13) & \textbf{\textit{38}} & \textbf{\textit{31}} & 00 & 03 & -1 & 02 \\
+        \bottomrule
+    \end{tabular}}
+\end{table*}
