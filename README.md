@@ -1,5 +1,4 @@
 # TypeProbe: Recovering Type Representations from Hidden States of Pre-trained Code Models
-### (under review at ESSLLI 2026)
 This repository contains all the necessary code to reproduce the experiments and produce the tables and figures in the paper.
 
 ## Abstract
