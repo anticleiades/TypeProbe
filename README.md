@@ -43,7 +43,7 @@ Unless otherwise specified, all probing experiments use the following hyperparam
 - **Learning rate:** $10^{-4}$
 - **Weight decay:** $0.01$
 - **Epochs**: 20
-- **Batch size (probe training):** 
+- **Batch size (probe training):** 512 (CodeLlama-7B), and 256 (SantaCoder). 
 - **Batch size (activation extraction):** 256 or 512 (adjustable on lower-VRAM setups)
 - **Cross-validation:** 4-fold, reporting peak layer-wise performance. 
 - **Probe model:** single linear layer trained on `resid_post` activations, one per task (task0, task 1, task 2).
