@@ -108,9 +108,9 @@ def _derive_meta_path(dataset_path: Path) -> Path:
 
 
 def _infer_eval_tag(
-    dataset_path: Path,
-    use_java: bool,
-    control_task: bool) -> str:
+        dataset_path: Path,
+        use_java: bool,
+        control_task: bool) -> str:
     name = dataset_path.stem.lower()
 
     if "adv" in name:
@@ -445,4 +445,3 @@ def parse_args() -> argparse.Namespace:
     if args.act is None:
         args.act = "resid_post"
     return _resolve_run_paths(args)
-

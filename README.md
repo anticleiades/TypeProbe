@@ -2,7 +2,7 @@
 This repository contains all the necessary code to reproduce the experiments and produce the tables and figures in the paper.
 
 ## Abstract
-  State-of-the-art code models achieve impressive performance, yet the extent to which they internally keep track of types remains poorly understood. To investigate the internal logic of these models, we probe the residual streams of pretrained code models for internal type representation. We curate a dataset of Java and Python code examples and execute a series of cross-language transfer experiments by training linear probes on one language and inferring argument-type and result-type in the other, upon function application. Our results from these suggest that SantaCoder develops a latent, language-agnostic manifold for type semantics. We find that this internal representation is largely robust to both lexical variation and cross-language syntactic differences. In contrast, CodeLlama displays higher sensitivity to language-specific syntax and lexical cues. To the best of our knowledge, prior works on interpretability of code models have not directly targeted formal type semantics or cross-lingual type representations, leaving open the question of whether models internalize a language-agnostic notion of types.
+State-of-the-art code models achieve impressive performance, yet the extent to which they internally encode type information remains poorly understood. We probe the residual streams of pretrained code models for internal type representations using a parallel dataset of Java and Python code examples. Our results show that cross-lingual type representations emerge even from untyped code. Moreover, we test whether hidden states linearly encode the result type implied by typed function application by training probes on one language to infer argument and result types in the other. Finally, we find that this structure is partly robust to lexical perturbations and cross-language syntactic variations. To the best of our knowledge, prior work on interpretability of code models has not directly targeted formal type semantics or cross-lingual type representations. We release our code and datasets.
 
 
 ## Environment and Dependencies
@@ -159,7 +159,8 @@ To summarize, to fully reproduce the paper tables and figures:
 - Train probes (`./trainProbeAll.sh`).
 - Train control probes (`./controlTask.sh`).
 - Execute cross-evaluation to generate all `results.json` files (`python prober/prober_crossEval.py`).
-- Run the reporting script to parse flat results, extract layer-wise metrics, and compile final artifacts:
+- Extract the peak layers with ``python scripts/extractPeak.py  --work-dir /path/to/work_dir_root``
+- Run the reporting scripts to output final artifacts (tables, layer-wise selectivity plots and confusion matrices):
 
 ```bash
 python genPaperV2.py \
@@ -167,16 +168,25 @@ python genPaperV2.py \
   --output-dir paper_output/
 ```
 
-You can also generate the final artifacts directly from the `results.json` files we provide:
+You can also generate the final artifacts directly from the `results.json` files we provide (we also include ``peak_layers.json`` obtained from our experiments):
 ```bash
 python genPaperV2.py \
   --work-dir paperData \
   --output-dir paperData/figAndTables
 ```
-
 This script parses all `results.json` files in `<work-dir>/results`, and outputs:
 - Per-model accuracy and selectivity plots (PDF & PNG).
 - Raw accuracy and selectivity LaTeX tables containing optimal layer choices for `task0`, `task1`, and `task2`.
+
+Finally, to generate confusion matrix from your data run:
+```bash
+./genCM.sh /path/to/work_dir_root
+```
+To use the final artifacts we provide, you can use
+```bash
+./genCM.sh paperData
+```
+
 
 ## Acknowledgements
 
@@ -187,9 +197,12 @@ Our implementation relies on the following libraries, for which we wish to thank
 * [Hugging Face Transformers](https://github.com/huggingface/transformers): for model loading and inference.
 * [TransformerLens](https://github.com/TransformerLensOrg/TransformerLens): for activation extraction.
 
-```
-[{Partially} omitted] (due to double-blind review constraints).
-```
+We acknowledge [SURF](https://www.surf.nl) for computing access on Snellius and the
+[ILLC (University of Amsterdam)](https://illc.uva.nl) for travel support. We are especially grateful to Fausto
+Carcassi for his invaluable supervision and guidance. We thank Michael Hanna and the
+anonymous reviewers for their insightful feedback, Adhvaith Koduru and Songyun Zou
+for their contributions to the preliminary experiments, and ESSLLI for a registration
+fee waiver.
 ## Citation
 
 If you use this repository or the resulting datasets in academic work, please cite the accompanying paper.

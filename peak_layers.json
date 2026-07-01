@@ -1,0 +1,86 @@
+{
+  "task0": {
+    "santacoder": {
+      "pyTag": 13,
+      "control_pyTag": 14,
+      "java": 13,
+      "control_java": 16,
+      "pyUnt": 12,
+      "control_pyUnt": 22,
+      "adv_pyTag": 13,
+      "control_adv_pyTag": 20,
+      "adv_java": 13,
+      "control_adv_java": 18,
+      "adv_pyUnt": 10,
+      "control_adv_pyUnt": 10
+    },
+    "codellama-7b-hf": {
+      "pyTag": 17,
+      "control_pyTag": 23,
+      "java": 16,
+      "control_java": 1,
+      "pyUnt": 13,
+      "control_pyUnt": 12,
+      "adv_pyTag": 17,
+      "control_adv_pyTag": 22,
+      "adv_pyUnt": 16,
+      "control_adv_pyUnt": 15
+    }
+  },
+  "task1": {
+    "santacoder": {
+      "pyTag": 11,
+      "control_pyTag": 19,
+      "java": 13,
+      "control_java": 1,
+      "pyUnt": 11,
+      "control_pyUnt": 14,
+      "adv_pyTag": 13,
+      "control_adv_pyTag": 1,
+      "adv_java": 20,
+      "control_adv_java": 6,
+      "adv_pyUnt": 11,
+      "control_adv_pyUnt": 11
+    },
+    "codellama-7b-hf": {
+      "pyTag": 16,
+      "control_pyTag": 5,
+      "java": 16,
+      "control_java": 8,
+      "pyUnt": 16,
+      "control_pyUnt": 7,
+      "adv_pyTag": 14,
+      "control_adv_pyTag": 12,
+      "adv_pyUnt": 30,
+      "control_adv_pyUnt": 21
+    }
+  },
+  "task2": {
+    "santacoder": {
+      "pyTag": 12,
+      "control_pyTag": 3,
+      "java": 12,
+      "control_java": 4,
+      "pyUnt": 12,
+      "control_pyUnt": 10,
+      "adv_pyTag": 11,
+      "control_adv_pyTag": 22,
+      "adv_java": 11,
+      "control_adv_java": 14,
+      "adv_pyUnt": 13,
+      "control_adv_pyUnt": 9
+    },
+    "codellama-7b-hf": {
+      "pyTag": 17,
+      "control_pyTag": 7,
+      "java": 14,
+      "control_java": 6,
+      "pyUnt": 18,
+      "control_pyUnt": 30,
+      "adv_pyTag": 15,
+      "control_adv_pyTag": 24,
+      "adv_pyUnt": 16,
+      "control_adv_pyUnt": 20
+    }
+  }
+}

@@ -1,6 +1,6 @@
 \begin{table*}[t]
     \centering
-    \caption{\textbf{Task 1 Selectivity and Peak Layer.} Values represent selectivity $\mathcal{S}$ ($\times 100$) at peak layer ($L$). Formatting follows Table~\ref{tab:task0-results}, with thresholds adjusted for the 8-class baseline: \textbf{bold} indicates $\mathcal{S} \ge 63$ ($\ge 75\%$ accuracy), and \textit{italics} indicate $\mathcal{S} \ge 30$.}
+    \caption{\textbf{Task 1: Argument Type Prediction.} Values report peak selectivity $\mathcal{S}$ ($\times 100$) and peak layer ($L$). Bold indicates values corresponding to at least $75\%$ raw accuracy ($S \ge 63$); italics indicate non-negligible signals ($S \ge 30$).}
     \label{tab:task1-results}
     \small
     \setlength{\tabcolsep}{4pt}
@@ -11,13 +11,13 @@
         \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
         \textbf{Model} & \textbf{Train} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} & \textbf{Java} & \textbf{pyTag} & \textbf{pyUnt} \\
         \midrule
-        \textbf{CodeLlama (7B)} & Java & \textbf{\textit{91}} (24) & 23 (27) & 19 (27) & \textit{54} & 12 & 23 & 37 & 10 & -4 \\
-         & pyTag & 19 (14) & \textbf{\textit{88}} (22) & \textbf{\textit{76}} (31) & 12 & \textit{42} & \textit{39} & 08 & 46 & 38 \\
-         & pyUnt & 16 (17) & \textbf{\textit{71}} (22) & \textbf{\textit{83}} (20) & 10 & 23 & \textit{35} & 06 & 48 & 49 \\
+        \textbf{CodeLlama (7B)} & Java & \textbf{\textit{87}} (16) & \textbf{\textit{77}} (16) & \textbf{\textit{73}} (16) & \textbf{\textit{74}} & \textit{36} & \textit{39} & 12 & 41 & 33 \\
+         & pyTag & \textit{61} (16) & \textbf{\textit{86}} (16) & \textbf{\textit{82}} (16) & \textit{41} & \textbf{\textit{64}} & \textit{58} & 19 & 21 & 24 \\
+         & pyUnt & \textit{47} (16) & \textbf{\textit{83}} (16) & \textbf{\textit{84}} (16) & 28 & \textit{48} & \textit{61} & 19 & 35 & 23 \\
         \midrule
-        \textbf{SantaCoder (1.1B)} & Java & \textbf{\textit{87}} (11) & \textbf{\textit{63}} (15) & \textit{53} (15) & \textbf{\textit{74}} & \textit{38} & \textit{32} & 13 & 25 & 21 \\
-         & pyTag & \textbf{\textit{71}} (15) & \textbf{\textit{83}} (13) & \textbf{\textit{70}} (13) & \textit{62} & \textbf{\textit{66}} & \textit{49} & 09 & 17 & 21 \\
-         & pyUnt & \textbf{\textit{67}} (11) & \textbf{\textit{80}} (11) & \textbf{\textit{81}} (11) & \textit{50} & \textit{62} & \textbf{\textit{68}} & 17 & 18 & 13 \\
+        \textbf{SantaCoder (1.1B)} & Java & \textbf{\textit{87}} (13) & \textbf{\textit{68}} (13) & \textbf{\textit{64}} (13) & \textbf{\textit{71}} & \textit{51} & \textit{53} & 16 & 17 & 11 \\
+         & pyTag & \textit{48} (11) & \textbf{\textit{86}} (11) & \textbf{\textit{73}} (11) & 27 & \textbf{\textit{70}} & \textit{48} & 21 & 17 & 25 \\
+         & pyUnt & \textbf{\textit{73}} (11) & \textbf{\textit{86}} (11) & \textbf{\textit{85}} (11) & \textit{53} & \textbf{\textit{77}} & \textbf{\textit{76}} & 20 & 09 & 09 \\
         \bottomrule
     \end{tabular}}
 \end{table*}
