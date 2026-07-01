@@ -40,8 +40,8 @@ The experiments in this repository were originally executed on a single **NVIDIA
 Unless otherwise specified, all probing experiments use the following hyperparameters.
 
 - **Optimizer:** AdamW
-- **Learning rate:** $10^{-4}$
-- **Weight decay:** $0.01$
+- **Learning rate:** 1e-4
+- **Weight decay:** 0.01
 - **Epochs**: 20
 - **Batch size (probe training):** 512 (CodeLlama-7B), and 256 (SantaCoder). 
 - **Batch size (activation extraction):** 256 or 512 (adjustable on lower-VRAM setups)
