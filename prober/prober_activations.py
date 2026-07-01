@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import torch
 from transformer_lens import utils
@@ -85,7 +85,7 @@ def _find_last_subsequence_indices(toks: torch.Tensor, seq: List[int], pad_id: O
     return torch.tensor(indices, dtype=torch.long, device=toks.device)
 
 
-def _fim_token_indices(*, toks: torch.Tensor, tokenizer, model_name: str) -> torch.Tensor:
+def _fim_token_indicesLegacy(*, toks: torch.Tensor, tokenizer, model_name: str) -> torch.Tensor:
     fim = FIM_TOKENS_BY_MODEL.get(model_name)
     if fim is None:
         fim = next(iter(FIM_TOKENS_BY_MODEL.values()))
@@ -93,3 +93,29 @@ def _fim_token_indices(*, toks: torch.Tensor, tokenizer, model_name: str) -> tor
     seq = tokenizer.encode(middle, add_special_tokens=False)
     pad_id = tokenizer.pad_token_id
     return _find_last_subsequence_indices(toks, seq, pad_id)
+
+
+def _fim_token_indices(
+    *, toks: torch.Tensor, tokenizer, model_name: str
+) -> torch.Tensor:
+    fim = FIM_TOKENS_BY_MODEL.get(model_name)
+    if fim is None:
+        fim = next(iter(FIM_TOKENS_BY_MODEL.values()))
+
+    mid_str = fim["middle"]
+    mid_id = tokenizer.encode(mid_str, add_special_tokens=False)[-1]
+
+    batch_size = toks.shape[0]
+    indices = torch.zeros(batch_size, dtype=torch.long, device=toks.device)
+
+    for i in range(batch_size):
+        matches = (toks[i] == mid_id).nonzero(as_tuple=True)[0]
+
+        if len(matches) == 0:
+            raise ValueError(
+                f"CRITICAL: FIM middle token (ID: {mid_id}) not found in batch row {i}."
+            )
+
+        indices[i] = matches[-1]
+
+    return indices

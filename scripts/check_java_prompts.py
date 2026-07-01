@@ -13,7 +13,7 @@ import pyarrow.parquet as pq
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from prober.prober_data import _build_prompt_from_row
+from prober.prober_data import _build_prompt_raw_str_from_row
 from dataset.metadata import FIM_TOKENS_BY_MODEL, prober_meta_null_type
 
 try:
@@ -86,7 +86,7 @@ def _worker_task(chunk_id: int, indices: List[int], model_name: str, tmp_dir_str
     with open(filelist_path, "w", encoding="utf-8") as flist:
         for idx in indices:
             row = _row_from_columns(_GLOBAL_COLUMNS, idx)
-            prompt = _build_prompt_from_row(row, model_name, use_java=True)
+            prompt = _build_prompt_raw_str_from_row(row, model_name, use_java=True)
             expected_idx = int(row["expectedFunctionIDX"])
             expected_func = row["func1Name"] if expected_idx == 0 else row["func2Name"]
             code = _normalize_java_prompt(prompt, expected_func, model_name)

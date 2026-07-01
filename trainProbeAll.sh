@@ -27,9 +27,9 @@ sbatch --job-name="SPyTag_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --pool fim \
     --repro \
     --model-revision main
@@ -44,9 +44,9 @@ sbatch --job-name="SPyUnTag_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --pool fim \
     --repro \
     --model-revision main
@@ -61,9 +61,9 @@ sbatch --job-name="SJava_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --java \
     --pool fim \
     --repro \
@@ -79,9 +79,9 @@ sbatch --job-name="Adv_SPyTag_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --pool fim \
     --repro \
     --model-revision main
@@ -96,9 +96,9 @@ sbatch --job-name="Adv_SPyUnTag_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --pool fim \
     --repro \
     --model-revision main
@@ -113,9 +113,9 @@ sbatch --job-name="Adv_SJava_L0-23" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 23 \
     --model "bigcode/santacoder" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 256 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4 \
     --java \
     --pool fim \
     --repro \
@@ -132,9 +132,9 @@ sbatch --job-name="CPyTag_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --pool fim \
     --repro \
     --model-revision main
@@ -149,9 +149,9 @@ sbatch --job-name="CPyUnTag_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --pool fim \
     --repro \
     --model-revision main
@@ -166,9 +166,9 @@ sbatch --job-name="CJava_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --java \
     --pool fim \
     --repro \
@@ -184,9 +184,9 @@ sbatch --job-name="Adv_CPyTag_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --pool fim \
     --repro \
     --model-revision main
@@ -201,9 +201,9 @@ sbatch --job-name="Adv_CPyUnTag_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --pool fim \
     --repro \
     --model-revision main
@@ -218,9 +218,9 @@ sbatch --job-name="Adv_CJava_L0-31" slurmV4/runWithEnv_H100_5hours.sh \
     --layer-start 0 \
     --layer-end 31 \
     --model "codellama/CodeLlama-7b-hf" \
-    --batch-size 2048 \
-    --epochs 30 \
-    --weight-decay 0.1 \
+    --batch-size 512 \
+    --epochs 20 \
+    --weight-decay 0.01 --optim adamW --lr 1e-4  \
     --pool fim \
     --repro \
     --model-revision main

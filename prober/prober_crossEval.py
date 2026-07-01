@@ -158,6 +158,8 @@ def _run_cross_eval_for_probe(
             eval_tag,
             "--model",
             get_model_from_slug(slug=model_slug),
+            "--batch-size",
+            "8192"
         ]
         if use_java_flag:
             cmd.append("--java")

@@ -11,7 +11,7 @@ import pyarrow.parquet as pq
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from prober.prober_data import _build_prompt_from_row
+from prober.prober_data import _build_prompt_raw_str_from_row
 from dataset.metadata import FIM_TOKENS_BY_MODEL
 
 try:
@@ -61,7 +61,7 @@ def _worker_task_python(indices: List[int], model_name: str) -> Dict[str, object
     for idx in indices:
         row = _row_from_columns(_GLOBAL_COLUMNS, idx)
         # Note: use_java=False for Python
-        prompt = _build_prompt_from_row(row, model_name, use_java=False)
+        prompt = _build_prompt_raw_str_from_row(row, model_name, use_java=False)
         expected_idx = int(row["expectedFunctionIDX"])
         expected_func = row["func1Name"] if expected_idx == 0 else row["func2Name"]
         code = _normalize_python_prompt(prompt, expected_func, model_name)

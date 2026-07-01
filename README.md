@@ -39,11 +39,11 @@ The experiments in this repository were originally executed on a single **NVIDIA
 
 Unless otherwise specified, all probing experiments use the following hyperparameters.
 
-- **Optimizer:** Adam
-- **Learning rate:** $10^{-3}$
-- **Weight decay:** $0.1$
-- **Epochs**: 30
-- **Batch size (probe training):** 2048
+- **Optimizer:** AdamW
+- **Learning rate:** $10^{-4}$
+- **Weight decay:** $0.01$
+- **Epochs**: 20
+- **Batch size (probe training):** 
 - **Batch size (activation extraction):** 256 or 512 (adjustable on lower-VRAM setups)
 - **Cross-validation:** 4-fold, reporting peak layer-wise performance. 
 - **Probe model:** single linear layer trained on `resid_post` activations, one per task (task0, task 1, task 2).

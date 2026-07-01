@@ -21,10 +21,10 @@ from dataset.metadata import (  # noqa: E402
     FIM_TOKENS_BY_MODEL,
     Python_fncMap,
     get_type_list,
-    java_gen_example,
     prober_meta_null_type,
-    py_gen_example,
     type_to_class,
+    py_gen_exampleV2,
+    java_gen_exampleV2,
 )
 
 from dataset import function_bank_java as java_bank
@@ -62,7 +62,7 @@ def _func_list_name(in_type: str, out_type: str) -> str:
         raise KeyError(f"Unsupported type for function list: {exc}") from exc
 
 
-def _build_prompt_from_row(row: Dict, model_name: str, *, use_java: bool) -> str:
+def _build_prompt_from_row(row: Dict, model_name: str, *, use_java: bool) -> Tuple[str, str]:
     if use_java:
         func1_list = getattr(
             java_bank,
@@ -88,7 +88,7 @@ def _build_prompt_from_row(row: Dict, model_name: str, *, use_java: bool) -> str
             raise ValueError("Cannot use null type with Java.")
         b_type = ""
 
-    gen_example = java_gen_example if use_java else py_gen_example
+    gen_example = java_gen_exampleV2 if use_java else py_gen_exampleV2
     return gen_example(
         row["func1Name"],
         row["func2Name"],
@@ -110,6 +110,10 @@ def _build_prompt_from_row(row: Dict, model_name: str, *, use_java: bool) -> str
         model_name,
     )
 
+def _build_prompt_raw_str_from_row(row: Dict, model_name: str, *, use_java: bool) -> str:
+    prefix, suffix = _build_prompt_from_row(row, model_name, use_java=use_java)
+    fim = FIM_TOKENS_BY_MODEL[model_name]
+    return f"{fim['prefix']}{prefix}{fim['suffix']}{suffix}{fim['middle']}"
 
 class V2PromptDataset(Dataset):
     def __init__(
@@ -126,7 +130,7 @@ class V2PromptDataset(Dataset):
     def __len__(self) -> int:
         return self.length
 
-    def __getitem__(self, idx: int) -> Dict[str, object]:
+    def __getitem__(self, idx: int) -> Dict[Tuple[str, str], object]:
         row = _row_from_columns(self.columns, idx)
         prompt = _build_prompt_from_row(row, self.model_name, use_java=self.use_java)
 
@@ -138,7 +142,7 @@ class V2PromptDataset(Dataset):
             task2 = type_to_class(row["b_expectedType"], self.minimal)
 
         labels = torch.tensor([task0, task1, task2], dtype=torch.long)
-        return {"prompt": prompt, "labels": labels}
+        return {"prompt": prompt, "labels": labels, "rowData" : row}
 
     def get_row(self, idx: int) -> Dict[str, object]:
         return _row_from_columns(self.columns, idx)

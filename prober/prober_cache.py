@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from prober_activations import _fim_token_indices, _pool_activation
+from prober_activations import _fim_token_indices, _pool_activation, _resolve_act_name, _fim_token_indicesLegacy
 from prober_data import collate_batch, get_dataset_path
 
 
@@ -68,16 +68,16 @@ def _write_run_fingerprint(save_dir: Path, fingerprint: Dict[str, object]) -> No
 
 
 def _build_cache_meta(
-    *,
-    layer: int,
-    act_name: str,
-    dataset: Dataset,
-    model_name: str,
-    use_java: bool,
-    pool: str,
-    seed: int,
-    dtype: Optional[str] = None,
-    fingerprint: Optional[Dict[str, object]] = None,
+        *,
+        layer: int,
+        act_name: str,
+        dataset: Dataset,
+        model_name: str,
+        use_java: bool,
+        pool: str,
+        seed: int,
+        dtype: Optional[str] = None,
+        fingerprint: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
     dataset_path = get_dataset_path(dataset)
     if dataset_path is None:
@@ -155,54 +155,112 @@ def _validate_cached_meta(*, cache_dir: Path, layer: int, expected: Dict[str, An
             f"{json.dumps(mismatch, indent=2, sort_keys=True)}"
         )
 
+def tokenize_fixup(
+    prompts: list[tuple[str, str]], model, model_key: str
+) -> torch.Tensor:
+    tokenizer = model.tokenizer
+    FIM_TOKENS_BY_MODEL = {
+        "bigcode/santacoder": {
+            "prefix": "<fim-prefix>",
+            "suffix": "<fim-suffix>",
+            "middle": "<fim-middle>",
+        },
+        "codellama/CodeLlama-7b-hf": {
+            "prefix": "<PRE>",
+            "suffix": "<SUF>",
+            "middle": "<MID>",
+        },
+    }
 
-def _cache_layer_activations(
-    *,
-    dataset,
-    model,
-    act_name: str,
-    layer: int,
-    batch_size: int,
-    cache_dir: Path,
-    overwrite: bool,
-    use_java: bool,
-    pool: str,
-    model_name: str,
-    expected_meta: Optional[Dict[str, object]] = None,
+    fim = FIM_TOKENS_BY_MODEL.get(model_key)
+    if fim is None:
+        raise RuntimeError(f"FIM not found for {model_key}")
+
+    pre_ids = tokenizer.encode(fim["prefix"], add_special_tokens=False)
+    suf_ids = tokenizer.encode(fim["suffix"], add_special_tokens=False)
+    mid_ids = tokenizer.encode(fim["middle"], add_special_tokens=False)
+
+    if len(pre_ids) != 1:
+        raise ValueError(f"CRITICAL: Prefix FIM token was encoded into {len(pre_ids)} tokens.")
+    if len(suf_ids) != 1:
+        raise ValueError(f"CRITICAL: Suffix FIM token was encoded into {len(suf_ids)} tokens.")
+    if len(mid_ids) != 1:
+        raise ValueError(f"CRITICAL: Middle FIM token was encoded into {len(mid_ids)} tokens.")
+
+    true_pre_id = pre_ids[0]
+    true_suf_id = suf_ids[0]
+    true_mid_id = mid_ids[0]
+
+    batch_ids = []
+
+    for prefix_code, suffix_code in prompts:
+        prefix_ids = tokenizer.encode(prefix_code, add_special_tokens=False)
+        suffix_ids = tokenizer.encode(suffix_code, add_special_tokens=False)
+
+        final_seq = (
+            [true_pre_id]
+            + prefix_ids
+            + [true_suf_id]
+            + suffix_ids
+            + [true_mid_id]
+        )
+
+        if model.cfg.default_prepend_bos and tokenizer.bos_token_id is not None:
+            final_seq = [tokenizer.bos_token_id] + final_seq
+
+        batch_ids.append(final_seq)
+
+    pad_id = tokenizer.pad_token_id or tokenizer.eos_token_id or 0
+    max_len = max(len(seq) for seq in batch_ids)
+    toks = torch.full((len(batch_ids), max_len), pad_id, dtype=torch.long)
+
+    for row, seq in enumerate(batch_ids):
+        toks[row, : len(seq)] = torch.tensor(seq, dtype=torch.long)
+
+    return toks
+
+def _cache_layer_activationsV2(
+        *,
+        dataset,
+        model,
+        arg_act: str,
+        batch_size: int,
+        cache_dir: Path,
+        overwrite: bool,
+        use_java: bool,
+        pool: str,
+        model_name: str,
+        codellama_fixup: bool = False,
+        seed,
+        run_fingerprint: Optional[Dict[str, object]] = None,
+        dtype
 ) -> None:
+    if dataset is None:
+        raise RuntimeError("null dataset")
     cache_dir.mkdir(parents=True, exist_ok=True)
-    acts_path = cache_dir / f"acts_layer{layer}.npy"
-    labels_path = cache_dir / "labels.npy"
-    meta_path = cache_dir / f"meta_layer{layer}.json"
+    n_layers = model.cfg.n_layers
+    act_names = {l: _resolve_act_name(arg_act, l) for l in range(n_layers)}
 
-    if acts_path.exists() and not overwrite:
-        if expected_meta is not None:
-            if not meta_path.exists():
-                raise ValueError(
-                    f"Missing cache metadata for reproducible run: {meta_path}"
-                )
-            cached_meta = json.loads(meta_path.read_text())
-            mismatch = {
-                k: {"expected": expected_meta.get(k), "cached": cached_meta.get(k)}
-                for k in expected_meta
-                if cached_meta.get(k) != expected_meta.get(k)
-            }
-            if mismatch:
-                raise ValueError(
-                    "Cached activations do not match current configuration: "
-                    f"{json.dumps(mismatch, indent=2)}"
-                )
-        if not labels_path.exists():
-            raise ValueError(
-                f"Cached activations exist without labels: {labels_path}"
-            )
-        existing_labels = np.load(labels_path, mmap_mode="r")
-        if existing_labels.shape[0] != len(dataset):
-            raise ValueError(
-                f"Cached labels rows ({existing_labels.shape[0]}) "
-                f"do not match dataset rows ({len(dataset)})."
-            )
-        print(f"[cache] exists -> {acts_path}")
+    meta_per_layer = {
+        l: _build_cache_meta(
+            layer=l,
+            act_name=act_names[l],
+            dataset=dataset,
+            model_name=model_name,
+            use_java=use_java,
+            pool=pool,
+            seed=seed,
+            dtype=str(dtype).replace("torch.", "") if dtype is not None else None,
+            fingerprint=run_fingerprint,
+        ) for l in range(n_layers)
+    }
+
+    names_filter = lambda name: name in act_names.values()
+    labels_path = cache_dir / "labels.npy"
+    all_exist = all((cache_dir / f"acts_layer{l}.npy").exists() for l in range(n_layers))
+
+    if all_exist and labels_path.exists() and not overwrite:
+        print("[cache] All layers already exist. Skipping.")
         return
 
     loader = DataLoader(
@@ -211,96 +269,93 @@ def _cache_layer_activations(
         shuffle=False,
         collate_fn=collate_batch,
     )
-    iterator = iter(loader)
-    try:
-        first_prompts, first_labels = next(iterator)
-    except StopIteration:
-        raise ValueError("Dataset is empty; cannot cache activations.")
-
-    label_dim = int(first_labels.shape[1]) if first_labels.ndim > 1 else 1
-    need_write_labels = True
-    if labels_path.exists() and not overwrite:
-        existing_labels = np.load(labels_path, mmap_mode="r")
-        if (
-            existing_labels.shape[0] == len(dataset)
-            and existing_labels.shape[1] == label_dim
-        ):
-            need_write_labels = False
-        else:
-            raise ValueError(
-                f"Cached labels shape {existing_labels.shape} does not match dataset."
-            )
 
     device = model.cfg.device
-    toks = model.to_tokens(first_prompts).to(device)
-    token_indices = None
-    if pool == "fim":
-        token_indices = _fim_token_indices(
-            toks=toks, tokenizer=model.tokenizer, model_name=model_name
-        )
-    with torch.no_grad():
-        _, cache = model.run_with_cache(toks, names_filter=lambda name: name == act_name)
-        act = cache[act_name]
-    feats = _pool_activation(act, pool=pool, token_indices=token_indices).detach().cpu()
-    in_features = feats.shape[-1]
-    feats_dtype = feats.numpy().dtype
 
-    acts_memmap = np.lib.format.open_memmap(
-        acts_path,
-        mode="w+",
-        dtype=feats_dtype,
-        shape=(len(dataset), in_features),
-    )
+    acts_memmaps = {}
     labels_memmap = None
-    if need_write_labels:
-        labels_memmap = np.lib.format.open_memmap(
-            labels_path,
-            mode="w+",
-            dtype=np.int64,
-            shape=(len(dataset), label_dim),
-        )
-
     offset = 0
+    in_features = None
+    feats_dtype = None
+    label_dim = None
+
     from tqdm import tqdm
+    with tqdm(total=len(dataset), desc=f"caching {n_layers} layers") as pbar:
 
-    with tqdm(total=len(dataset), desc=f"cache layer {layer}", leave=False) as pbar:
-        batch_size_actual = feats.shape[0]
-        acts_memmap[offset : offset + batch_size_actual] = feats.numpy()
-        if labels_memmap is not None:
-            labels_memmap[offset : offset + batch_size_actual] = first_labels.numpy()
-        offset += batch_size_actual
-        pbar.update(batch_size_actual)
-
-        for prompts, labels in iterator:
-            toks = model.to_tokens(prompts).to(device)
+        for prompts, labels in loader:
+            if codellama_fixup:
+                toks = tokenize_fixup(prompts, model, model_key=model_name).to(device)
+            else:
+                toks = model.to_tokens(prompts).to(device)
             token_indices = None
             if pool == "fim":
-                token_indices = _fim_token_indices(
+                if codellama_fixup:
+                    __fim_tkn_impl = _fim_token_indices
+                else:
+                    __fim_tkn_impl = _fim_token_indicesLegacy
+                token_indices = __fim_tkn_impl(
                     toks=toks, tokenizer=model.tokenizer, model_name=model_name
                 )
+
             with torch.no_grad():
-                _, cache = model.run_with_cache(toks, names_filter=lambda name: name == act_name)
+                _, cache = model.run_with_cache(toks, names_filter=names_filter)
+
+            batch_size_actual = toks.shape[0]
+
+            if offset == 0:
+                label_dim = int(labels.shape[1]) if labels.ndim > 1 else 1
+
+                act_0 = cache[act_names[0]]
+                feats_0 = _pool_activation(act_0, pool=pool, token_indices=token_indices).detach().cpu()
+                in_features = feats_0.shape[-1]
+                feats_dtype = feats_0.numpy().dtype
+
+                for l in range(n_layers):
+                    acts_path = cache_dir / f"acts_layer{l}.npy"
+                    acts_memmaps[l] = np.lib.format.open_memmap(
+                        acts_path,
+                        mode="w+",
+                        dtype=feats_dtype,
+                        shape=(len(dataset), in_features),
+                    )
+
+                labels_memmap = np.lib.format.open_memmap(
+                    labels_path,
+                    mode="w+",
+                    dtype=np.int64,
+                    shape=(len(dataset), label_dim),
+                )
+
+            for l, act_name in act_names.items():
                 act = cache[act_name]
-            feats = _pool_activation(act, pool=pool, token_indices=token_indices).detach().cpu()
-            batch_size_actual = feats.shape[0]
-            acts_memmap[offset : offset + batch_size_actual] = feats.numpy()
-            if labels_memmap is not None:
-                labels_memmap[offset : offset + batch_size_actual] = labels.numpy()
+                feats = _pool_activation(act, pool=pool, token_indices=token_indices).detach().cpu().numpy()
+                acts_memmaps[l][offset: offset + batch_size_actual] = feats
+
+            labels_memmap[offset: offset + batch_size_actual] = labels.numpy()
+
             offset += batch_size_actual
             pbar.update(batch_size_actual)
 
-    meta = {
-        "layer": layer,
-        "act_name": act_name,
-        "n_samples": len(dataset),
-        "in_features": int(in_features),
-        "dtype": str(feats_dtype),
-        "model_name": model_name,
-        "use_java": bool(use_java),
-        "pool": pool,
-    }
-    if expected_meta is not None:
-        for key in ("dataset_path", "seed", "fingerprint"):
-            if key in expected_meta:
-                meta[key] = expected_meta[key]
-    meta_path.write_text(json.dumps(meta, indent=2))
+            del cache
+            del _
+
+    for l, act_name in act_names.items():
+        meta = {
+            "layer": l,
+            "act_name": act_name,
+            "n_samples": len(dataset),
+            "in_features": int(in_features),
+            "dtype": str(feats_dtype),
+            "model_name": model_name,
+            "use_java": bool(use_java),
+            "pool": pool,
+        }
+        if meta_per_layer[l] is not None:
+            for key in ("dataset_path", "seed", "fingerprint"):
+                if key in meta_per_layer[l]:
+                    meta[key] = meta_per_layer[l][key]
+        (cache_dir / f"meta_layer{l}.json").write_text(json.dumps(meta, indent=2))
+
+    for l in acts_memmaps:
+        acts_memmaps[l].flush()
+    labels_memmap.flush()

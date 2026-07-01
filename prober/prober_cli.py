@@ -347,7 +347,7 @@ def _add_args() -> argparse.ArgumentParser:
     ap.add_argument("--val-frac", type=float, default=0.1)
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument(
         "--weight-decay",
         type=float,
@@ -409,11 +409,6 @@ def _add_args() -> argparse.ArgumentParser:
         help="Implements Control Task (Hewitt et al.). Replace labels with random targets (still uses cached activations if enabled).",
     )
     ap.add_argument(
-        "--causality",
-        action="store_true",
-        help="Report task2 accuracy conditioned on task0/1 correctness (test set).",
-    )
-    ap.add_argument(
         "--java",
         action="store_true",
         help="Generate Java prompts (including activation caching).",
@@ -423,6 +418,22 @@ def _add_args() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help="Optional path to write per-layer per-task accuracies as JSON.",
+    )
+    ap.add_argument(
+        "--optim",
+        choices=["adam", "adamW", "sgd"],
+        help="Choose the optimizer.",
+    )
+    ap.add_argument(
+        "--normalize",
+        action="store_true",
+        help="Enables Z-score normalization for Linear Probes",
+    )
+    ap.add_argument(
+        "--sched",
+        action="store_true",
+        default=False,
+        help="Enables CosineAnnealingLR scheduler",
     )
     return ap
 

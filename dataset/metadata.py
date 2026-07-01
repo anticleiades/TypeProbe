@@ -177,6 +177,9 @@ def type_to_class(t: str, is_minimal: bool) -> int:
         raise ValueError(f"Unknown type '{t}'. Expected one of {types}.")
     return types.index(t)
 
+def class_to_label_type(idx: int, is_minimal: bool) -> str:
+    return get_type_list(is_minimal)[idx]
+
 
 def get_nihilTypeTgtClass(args) -> int:
     return len(get_type_list(args.minimal))
@@ -277,6 +280,24 @@ FIM_TOKENS_BY_MODEL = {
     },
 }
 
+
+def corrupt_row(row):
+    if row['expectedFunctionIDX'] == 0:
+        aVarId = _type_to_ident(row["func2InputType"])
+    else:
+        aVarId = _type_to_ident(row["func1InputType"])
+    copy = {k: v for k, v in row.items()}
+    copy["aID"] = "var_"+aVarId
+    return copy
+
+def clean_row(row):
+    if row['expectedFunctionIDX'] == 1:
+        aVarId = _type_to_ident(row["func2InputType"])
+    else:
+        aVarId = _type_to_ident(row["func1InputType"])
+    copy = {k: v for k, v in row.items()}
+    copy["aID"] = "var_"+aVarId
+    return copy
 
 def _fim_tokens_for_model(model_name: str) -> dict:
     if model_name not in FIM_TOKENS_BY_MODEL:
@@ -384,6 +405,66 @@ def _java_fnc_body(list, idx, arg_name: str, out_type: str) -> str:
     body = list[idx](arg_name) if callable(list[idx]) else list[idx]
     return _indent_block(body)
 
+def py_gen_exampleV2(func1_name: str, func2_name: str,
+                   func1_body_idx: int, func2_body_idx: int,
+                   func1_src_list: List[Callable[[str], str]], func2_src_list: List[Callable[[str], str]],
+                   maybe_func1_out_type: str, maybe_func2_out_type: str,
+                   maybe_func1_in_type: str, maybe_func2_in_type: str,
+                   a_value: str, maybe_a_type: str, maybe_b_type: str,
+
+                   func1_arg_name: str, func2_arg_name: str,
+                   a_id_name: str, b_id_name: str,
+                   model_name: str) -> Tuple[str, str]:
+    prefix =  f"""def f_{func1_name}({func1_arg_name}{add_colon(maybe_func1_in_type)}){add_type_arrow(maybe_func1_out_type)}:
+{get_fnc_body(func1_src_list, func1_body_idx, func1_arg_name)}
+
+def f_{func2_name}({func2_arg_name}{add_colon(maybe_func2_in_type)}){add_type_arrow(maybe_func2_out_type)}:
+{get_fnc_body(func2_src_list, func2_body_idx, func2_arg_name)}
+
+{a_id_name}{add_colon(maybe_a_type)} = {a_value}
+
+{b_id_name}{add_colon(maybe_b_type)} = f_"""
+    suffix =  f"""({a_id_name})"""
+    return prefix, suffix
+
+
+def java_gen_exampleV2(func1_name: str, func2_name: str,
+                     func1_body_idx: int, func2_body_idx: int,
+                     func1_src_list: List[Callable[[str], str]], func2_src_list: List[Callable[[str], str]],
+                     maybe_func1_out_type: str, maybe_func2_out_type: str,
+                     maybe_func1_in_type: str, maybe_func2_in_type: str,
+                     a_value: str, maybe_a_type: str, maybe_b_type: str,
+                     func1_arg_name: str, func2_arg_name: str,
+                     a_id_name: str, b_id_name: str,
+                     model_name: str):
+    fim = _fim_tokens_for_model(model_name)
+    func1_out = _java_type(maybe_func1_out_type)
+    func2_out = _java_type(maybe_func2_out_type)
+    func1_in = _java_type(maybe_func1_in_type)
+    func2_in = _java_type(maybe_func2_in_type)
+    a_type = _java_type(maybe_a_type)
+    b_type = _java_type(maybe_b_type)
+    a_value_java = _java_literal_from_text(a_value, maybe_a_type)
+    prefix = f"""import java.util.*;
+
+class Main {{
+    static {func1_out} f_{func1_name}({func1_in} {func1_arg_name}) {{
+    {_java_fnc_body(func1_src_list, func1_body_idx, func1_arg_name, maybe_func1_out_type)}
+    }}
+
+    static {func2_out} f_{func2_name}({func2_in} {func2_arg_name}) {{
+    {_java_fnc_body(func2_src_list, func2_body_idx, func2_arg_name, maybe_func2_out_type)}
+    }}
+
+    public static void main(String[] argv) {{
+        {a_type} {a_id_name} = {a_value_java};
+        {b_type} {b_id_name} = f_"""
+    suffix = f"""({a_id_name});
+        }}
+    }}"""
+    return prefix, suffix
+
+
 
 def py_gen_example(func1_name: str, func2_name: str,
                    func1_body_idx: int, func2_body_idx: int,
@@ -404,11 +485,44 @@ def f_{func2_name}({func2_arg_name}{add_colon(maybe_func2_in_type)}){add_type_ar
 
 {a_id_name}{add_colon(maybe_a_type)} = {a_value}
 
-{b_id_name}{add_colon(maybe_b_type)} = f_{fim['suffix']}({a_id_name}){fim['middle']}
-    """
+{b_id_name}{add_colon(maybe_b_type)} = f_{fim['suffix']}({a_id_name}){fim['middle']}"""
 
 
 def java_gen_example(func1_name: str, func2_name: str,
+                     func1_body_idx: int, func2_body_idx: int,
+                     func1_src_list: List[Callable[[str], str]], func2_src_list: List[Callable[[str], str]],
+                     maybe_func1_out_type: str, maybe_func2_out_type: str,
+                     maybe_func1_in_type: str, maybe_func2_in_type: str,
+                     a_value: str, maybe_a_type: str, maybe_b_type: str,
+                     func1_arg_name: str, func2_arg_name: str,
+                     a_id_name: str, b_id_name: str,
+                     model_name: str):
+    fim = _fim_tokens_for_model(model_name)
+    func1_out = _java_type(maybe_func1_out_type)
+    func2_out = _java_type(maybe_func2_out_type)
+    func1_in = _java_type(maybe_func1_in_type)
+    func2_in = _java_type(maybe_func2_in_type)
+    a_type = _java_type(maybe_a_type)
+    b_type = _java_type(maybe_b_type)
+    a_value_java = _java_literal_from_text(a_value, maybe_a_type)
+    return f"""{fim['prefix']}import java.util.*;
+
+class Main {{
+    static {func1_out} f_{func1_name}({func1_in} {func1_arg_name}) {{
+    {_java_fnc_body(func1_src_list, func1_body_idx, func1_arg_name, maybe_func1_out_type)}
+    }}
+
+    static {func2_out} f_{func2_name}({func2_in} {func2_arg_name}) {{
+    {_java_fnc_body(func2_src_list, func2_body_idx, func2_arg_name, maybe_func2_out_type)}
+    }}
+
+    public static void main(String[] argv) {{
+        {a_type} {a_id_name} = {a_value_java};
+        {b_type} {b_id_name} = f_{fim['suffix']}({a_id_name});
+    }}
+}}{fim['middle']}"""
+
+def java_gen_examplelegacy(func1_name: str, func2_name: str,
                      func1_body_idx: int, func2_body_idx: int,
                      func1_src_list: List[Callable[[str], str]], func2_src_list: List[Callable[[str], str]],
                      maybe_func1_out_type: str, maybe_func2_out_type: str,
