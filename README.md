@@ -1,6 +1,8 @@
 # TypeProbe: Recovering Type Representations from Hidden States of Pre-trained Code Models
 This repository contains all the necessary code to reproduce the experiments and produce the tables and figures in the paper.
 
+Accepted as long paper at [ESSLLI 2026 StuS](https://2026.esslli.eu/courses-workshops-accepted/student-session-call.html).
+
 ## Abstract
 State-of-the-art code models achieve impressive performance, yet the extent to which they internally encode type information remains poorly understood. We probe the residual streams of pretrained code models for internal type representations using a parallel dataset of Java and Python code examples. Our results show that cross-lingual type representations emerge even from untyped code. Moreover, we test whether hidden states linearly encode the result type implied by typed function application by training probes on one language to infer argument and result types in the other. Finally, we find that this structure is partly robust to lexical perturbations and cross-language syntactic variations. To the best of our knowledge, prior work on interpretability of code models has not directly targeted formal type semantics or cross-lingual type representations. We release our code and datasets.
 
