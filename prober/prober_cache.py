@@ -156,9 +156,8 @@ def _validate_cached_meta(*, cache_dir: Path, layer: int, expected: Dict[str, An
         )
 
 def tokenize_fixup(
-    prompts: list[tuple[str, str]], model, model_key: str
+    prompts: list[tuple[str, str]], tokenizer, cfg, model_key: str
 ) -> torch.Tensor:
-    tokenizer = model.tokenizer
     FIM_TOKENS_BY_MODEL = {
         "bigcode/santacoder": {
             "prefix": "<fim-prefix>",
@@ -205,7 +204,7 @@ def tokenize_fixup(
             + [true_mid_id]
         )
 
-        if model.cfg.default_prepend_bos and tokenizer.bos_token_id is not None:
+        if cfg.default_prepend_bos and tokenizer.bos_token_id is not None:
             final_seq = [tokenizer.bos_token_id] + final_seq
 
         batch_ids.append(final_seq)
@@ -230,7 +229,7 @@ def _cache_layer_activationsV2(
         use_java: bool,
         pool: str,
         model_name: str,
-        codellama_fixup: bool = False,
+        codellama_fixup: bool = True,
         seed,
         run_fingerprint: Optional[Dict[str, object]] = None,
         dtype
@@ -282,11 +281,11 @@ def _cache_layer_activationsV2(
     from tqdm import tqdm
     with tqdm(total=len(dataset), desc=f"caching {n_layers} layers") as pbar:
 
-        for prompts, labels in loader:
+        for prompts, labels, _, raw_prompts in loader:
             if codellama_fixup:
-                toks = tokenize_fixup(prompts, model, model_key=model_name).to(device)
+                toks = tokenize_fixup(prompts, model.tokenizer, model.cfg, model_key=model_name).to(device)
             else:
-                toks = model.to_tokens(prompts).to(device)
+                toks = model.to_tokens(raw_prompts).to(device)
             token_indices = None
             if pool == "fim":
                 if codellama_fixup:

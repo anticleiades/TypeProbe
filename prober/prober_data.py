@@ -117,7 +117,7 @@ def _build_prompt_raw_str_from_row(row: Dict, model_name: str, *, use_java: bool
 
 class V2PromptDataset(Dataset):
     def __init__(
-        self, parquet_path: Path, *, minimal: bool, model_name: str, use_java: bool
+            self, parquet_path: Path, *, minimal: bool, model_name: str, use_java: bool
     ) -> None:
         self.parquet_path = parquet_path
         self.minimal = minimal
@@ -130,9 +130,10 @@ class V2PromptDataset(Dataset):
     def __len__(self) -> int:
         return self.length
 
-    def __getitem__(self, idx: int) -> Dict[Tuple[str, str], object]:
+    def __getitem__(self, idx: int) -> dict:
         row = _row_from_columns(self.columns, idx)
         prompt = _build_prompt_from_row(row, self.model_name, use_java=self.use_java)
+        prompt_str = _build_prompt_raw_str_from_row(row, self.model_name, use_java=self.use_java)
 
         task0 = int(row["expectedFunctionIDX"])
         task1 = type_to_class(row["aVarExpectedType"], self.minimal)
@@ -142,7 +143,7 @@ class V2PromptDataset(Dataset):
             task2 = type_to_class(row["b_expectedType"], self.minimal)
 
         labels = torch.tensor([task0, task1, task2], dtype=torch.long)
-        return {"prompt": prompt, "labels": labels, "rowData" : row}
+        return {"prompt": prompt, "labels": labels, "rowData": row, "prompt_str": prompt_str}
 
     def get_row(self, idx: int) -> Dict[str, object]:
         return _row_from_columns(self.columns, idx)
@@ -227,14 +228,16 @@ def _type_matches(value: object, type_name: str) -> bool:
     return False
 
 
-def collate_batch(batch: List[Dict[str, object]]) -> Tuple[List[str], torch.Tensor]:
+def collate_batch(batch: List[Dict[str, object]]) -> tuple[list[object], Tensor, list[object], list[object]]:
     prompts = [item["prompt"] for item in batch]
     labels = torch.stack([item["labels"] for item in batch], dim=0)
-    return prompts, labels
+    rows = [item["rowData"] for item in batch]
+    raw_prompts = [item["prompt_str"] for item in batch]
+    return prompts, labels, rows, raw_prompts
 
 
 def collate_batch_cached(
-    batch: List[Dict[str, np.ndarray]],
+        batch: List[Dict[str, np.ndarray]],
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     feats = torch.stack([torch.from_numpy(item["feats"]) for item in batch], dim=0)
     labels = torch.stack([torch.from_numpy(item["labels"]) for item in batch], dim=0)
@@ -296,13 +299,13 @@ def get_dataset_path(dataset: Dataset) -> Optional[Path]:
 
 class GenericParquetPromptDataset(Dataset):
     def __init__(
-        self,
-        parquet_path: Path,
-        *,
-        prompt_col: str = "prompt",
-        label_cols: Optional[List[str]] = None,
-        labels_col: Optional[str] = None,
-        infer_label_cols=None,
+            self,
+            parquet_path: Path,
+            *,
+            prompt_col: str = "prompt",
+            label_cols: Optional[List[str]] = None,
+            labels_col: Optional[str] = None,
+            infer_label_cols=None,
     ) -> None:
         self.parquet_path = parquet_path
         self.prompt_col = prompt_col
